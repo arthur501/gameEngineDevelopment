@@ -1,5 +1,8 @@
+#include <GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <vector>
+#include <string>
 
 int main()
 {
@@ -8,7 +11,12 @@ int main()
 		return -1;
 	}
 
-	GLFWwindow* window =  glfwCreateWindow(1280, 720, "Game Development Project", NULL, NULL);
+	// Configure the OPENGL context to use version 3.3 Core Profile
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+	GLFWwindow* window =  glfwCreateWindow(1280, 720, "Game Development Project", NULL, NULL); // Create the window 
 
 	if (window == nullptr)
 	{
@@ -17,9 +25,97 @@ int main()
 		return -1;
 	}
 
-	// Runs the main window until the user clicks to close
-	while (!glfwWindowShouldClose(window))
+	glfwMakeContextCurrent(window);
+
+	// Enable experimental extensions so GLEW can load
+	// modern OPenGL functions used by the Core Profile
+	glewExperimental = GL_TRUE;
+
+	if (glewInit() != GLEW_OK)
 	{
+		glfwTerminate();
+		return -1; 
+	}
+
+	std::string vertexShaderSource = R"(
+		#version 330 core
+		layout (location = 0) in vec3 position;
+
+		void main()
+		{
+			gl_Position = vec4(position.x, position.y, position.z, 1.0);
+		}
+	)";
+
+	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	const char* vertexshaderCStr = vertexShaderSource.c_str();
+	glShaderSource(vertexShader, 1, &vertexshaderCStr, NULL);
+	glCompileShader(vertexShader);
+
+	GLint success;
+	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
+	if (!success)
+	{
+		char infoLog[512];
+		glGetShaderInfoLog(vertexShader, 512, nullptr, infoLog);
+		std::cerr << "ERROR: VERTEX_SHADER_COMPILATION_FAILED: " << infoLog << std::endl;
+	}
+
+	std::string fragmentShaderSource = R"(
+		#version 330 core
+		out vec4 FragColor;
+		
+		void main() 
+		{
+			FragColor = vec4(1.0, 0.0f, 0.0, 1.0);
+		}
+	)";
+
+	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	const char* fragmentShaderSourceCStr = fragmentShaderSource.c_str();
+	glShaderSource(fragmentShader, 1, &fragmentShaderSourceCStr, nullptr);
+	glCompileShader(fragmentShader);
+
+	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success); 
+	if (!success)
+	{
+		char infoLog[512]; 
+		glGetShaderInfoLog(fragmentShader, 512, nullptr, infoLog);
+		std::cerr << "ERROR:FRAGMENT_SHADER_COMPILATION_FAILED: " << infoLog << std::endl;
+	}
+
+	GLuint shaderProgram = glCreateProgram();
+	glAttachShader(shaderProgram, vertexShader);
+	glAttachShader(shaderProgram, fragmentShader);
+	glLinkProgram(shaderProgram);
+
+	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
+	if (!success)
+	{
+		char infoLog[512];
+		glGetProgramInfoLog(shaderProgram, 512, nullptr, infoLog);
+		std::cerr << "ERROR:SHADER_PROGRAM_LINKING_FAILED: " << infoLog << std::endl; 
+	}
+
+	// After linking the shader we don't need the individual shader anymore
+	glDeleteShader(vertexShader);
+	glDeleteShader(fragmentShader);
+
+	// Create the vertices of a triangle 
+	std::vector<float> vertices =
+	{
+		0.0f, 0.5f, 0.0f,
+		-0.5f, -0.5f, 0.0f,
+		0.5f, -0.5f, 0.0f
+	};
+
+	while (!glfwWindowShouldClose(window)) // Runs the main window until the user clicks to close
+	{
+		glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+		
+		glfwSwapBuffers(window); // Swap the buffer (Back Buffer / Frontal Buffer)
+
 		glfwPollEvents();
 	}
 
