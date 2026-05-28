@@ -37,6 +37,7 @@ int main()
 		return -1; 
 	}
 
+	// Create a Vertex Shader
 	std::string vertexShaderSource = R"(
 		#version 330 core
 		layout (location = 0) in vec3 position;
@@ -47,10 +48,10 @@ int main()
 		}
 	)";
 
-	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
+	GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER); // Create a shader object in the GPU 
 	const char* vertexshaderCStr = vertexShaderSource.c_str();
 	glShaderSource(vertexShader, 1, &vertexshaderCStr, NULL);
-	glCompileShader(vertexShader);
+	glCompileShader(vertexShader); // Compile the Vertex Shader
 
 	GLint success;
 	glGetShaderiv(vertexShader, GL_COMPILE_STATUS, &success);
@@ -61,6 +62,7 @@ int main()
 		std::cerr << "ERROR: VERTEX_SHADER_COMPILATION_FAILED: " << infoLog << std::endl;
 	}
 
+	// Create a Fragment Shader
 	std::string fragmentShaderSource = R"(
 		#version 330 core
 		out vec4 FragColor;
@@ -71,10 +73,10 @@ int main()
 		}
 	)";
 
-	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+	GLuint fragmentShader = glCreateShader(GL_FRAGMENT_SHADER); // Create a shader object in the GPU
 	const char* fragmentShaderSourceCStr = fragmentShaderSource.c_str();
 	glShaderSource(fragmentShader, 1, &fragmentShaderSourceCStr, nullptr);
-	glCompileShader(fragmentShader);
+	glCompileShader(fragmentShader); // Compile the Fragment Shader 
 
 	glGetShaderiv(fragmentShader, GL_COMPILE_STATUS, &success); 
 	if (!success)
@@ -84,7 +86,7 @@ int main()
 		std::cerr << "ERROR:FRAGMENT_SHADER_COMPILATION_FAILED: " << infoLog << std::endl;
 	}
 
-	GLuint shaderProgram = glCreateProgram();
+	GLuint shaderProgram = glCreateProgram(); // Create a GPU shader program and attach the compiled shaders
 	glAttachShader(shaderProgram, vertexShader);
 	glAttachShader(shaderProgram, fragmentShader);
 	glLinkProgram(shaderProgram);
